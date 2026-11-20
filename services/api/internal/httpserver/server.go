@@ -22,7 +22,7 @@ type Server struct {
 
 func New() *Server {
 	return &Server{
-		quota:     quota.NewService(),
+		quota:     quota.NewService(quota.Deps{}),
 		integrity: integrity.NewService(),
 		billing:   billing.NewService(),
 		ota:       ota.NewService(),

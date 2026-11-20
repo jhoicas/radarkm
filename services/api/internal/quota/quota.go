@@ -10,43 +10,26 @@ import (
 	"radarkm/api/internal/rediskeys"
 )
 
-// Service is the authoritative free-quota gateway (Redis America/Bogota).
-// Consume/business logic belongs to later tasks; T-01 only wires day/key contracts.
-type Service struct{}
-
-func NewService() *Service { return &Service{} }
-
-type statusResponse struct {
-	DeviceID      string `json:"deviceId"`
-	DayBogota     string `json:"dayBogota"`
-	QuotaKey      string `json:"quotaKey"`
-	Used          int64  `json:"used"`
-	Limit         int64  `json:"limit"`
-	Remaining     int64  `json:"remaining"`
-	Signature     string `json:"signatureEd25519Base64"`
-	Authoritative bool   `json:"authoritative"`
-}
-
 func (s *Service) HandleStatus(w http.ResponseWriter, r *http.Request) {
 	deviceID := r.URL.Query().Get("deviceId")
-	now := time.Now().UTC()
+	now := s.clock.Now()
 	day := rediskeys.BogotaDay(now)
-	resp := statusResponse{
-		DeviceID:      deviceID,
-		DayBogota:     day,
-		QuotaKey:      rediskeys.QuotaKey(deviceID, now),
-		Used:          0,
-		Limit:         2,
-		Remaining:     2,
-		Signature:     "",
-		Authoritative: true,
+	resp := map[string]any{
+		"deviceId":      deviceID,
+		"dayBogota":     day,
+		"quotaKey":      rediskeys.QuotaKey(deviceID, now),
+		"used":          int64(0),
+		"limit":         int64(2),
+		"remaining":     int64(2),
+		"signatureEd25519Base64": "",
+		"authoritative": true,
 	}
 	writeJSON(w, http.StatusOK, resp)
 }
 
 func (s *Service) HandleConsume(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusNotImplemented, map[string]string{
-		"error": "quota consume not implemented in this task",
+		"error": "HTTP consume wiring deferred; use Service.Consume",
 	})
 }
 
@@ -55,3 +38,6 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(v)
 }
+
+// keep time import used for documentation of Bogotá day contract.
+var _ = time.Time{}

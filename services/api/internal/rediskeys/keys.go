@@ -11,16 +11,33 @@ import (
 const (
 	ConfigRuntimeKey = "config:runtime"
 	BogotaLocation   = "America/Bogota"
+	DedupTTLSeconds  = 90
 )
 
 // BogotaDay returns the civil date YYYY-MM-DD in America/Bogota for the given instant.
 func BogotaDay(now time.Time) string {
+	return now.In(MustBogota()).Format("2006-01-02")
+}
+
+// MustBogota loads America/Bogota (tzdata-backed).
+func MustBogota() *time.Location {
 	loc, err := time.LoadLocation(BogotaLocation)
 	if err != nil {
-		// tzdata embed makes this unreachable in normal builds; keep a fixed offset fallback.
-		loc = time.FixedZone("America/Bogota", -5*3600)
+		return time.FixedZone("America/Bogota", -5*3600)
 	}
-	return now.In(loc).Format("2006-01-02")
+	return loc
+}
+
+// NextBogotaMidnight returns the next 00:00:00 America/Bogota strictly after now.
+// If now is exactly midnight Bogotá, returns the following day's midnight (for EXPIREAT).
+func NextBogotaMidnight(now time.Time) time.Time {
+	loc := MustBogota()
+	local := now.In(loc)
+	midnightToday := time.Date(local.Year(), local.Month(), local.Day(), 0, 0, 0, 0, loc)
+	if local.Before(midnightToday) {
+		return midnightToday
+	}
+	return midnightToday.Add(24 * time.Hour)
 }
 
 // QuotaKey builds quota:{device_hash}:{YYYY-MM-DD} for the Bogotá civil day of now.

@@ -1,0 +1,3 @@
+C:/Users/yoiner.castillo/source/repos/RadarKm/apps/android/core/security/.cxx/Debug/4e2c5i3a/arm64-v8a/CMakeFiles/radarkm_security.dir
+C:/Users/yoiner.castillo/source/repos/RadarKm/apps/android/core/security/.cxx/Debug/4e2c5i3a/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Users/yoiner.castillo/source/repos/RadarKm/apps/android/core/security/.cxx/Debug/4e2c5i3a/arm64-v8a/CMakeFiles/rebuild_cache.dir

@@ -1,0 +1,41 @@
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.iml
+.cursor/
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Android
+apps/android/.gradle/
+apps/android/**/build/
+apps/android/local.properties
+*.apk
+*.aab
+*.keystore
+captures/
+
+# Go
+services/api/bin/
+services/api/server
+*.exe
+
+# Node
+node_modules/
+apps/admin-web/.next/
+apps/admin-web/out/
+*.tsbuildinfo
+npm-debug.log*
+pnpm-debug.log*
+
+# Misc
+coverage/
+dist/
+tmp/
+*.log

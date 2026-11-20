@@ -1,0 +1,7 @@
+[
+{
+  "directory": "C:/Users/yoiner.castillo/source/repos/RadarKm/apps/android/core/security/.cxx/Debug/4e2c5i3a/armeabi-v7a",
+  "command": "C:\\Users\\yoiner.castillo\\AppData\\Local\\Android\\Sdk\\ndk\\28.2.13676358\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=armv7-none-linux-androideabi26 --sysroot=C:/Users/yoiner.castillo/AppData/Local/Android/Sdk/ndk/28.2.13676358/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Dradarkm_security_EXPORTS -IC:/Users/yoiner.castillo/source/repos/RadarKm/apps/android/core/security/src/main/cpp/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -march=armv7-a -mthumb -Wformat -Werror=format-security  -std=c++17 -fno-limit-debug-info  -fPIC -o CMakeFiles\\radarkm_security.dir\\src\\main\\cpp\\radarkm_security.cpp.o -c C:\\Users\\yoiner.castillo\\source\\repos\\RadarKm\\apps\\android\\core\\security\\src\\main\\cpp\\radarkm_security.cpp",
+  "file": "C:\\Users\\yoiner.castillo\\source\\repos\\RadarKm\\apps\\android\\core\\security\\src\\main\\cpp\\radarkm_security.cpp"
+}
+]

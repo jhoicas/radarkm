@@ -5,14 +5,11 @@ import (
 	"net/http"
 )
 
-type Service struct{}
-
-func NewService() *Service { return &Service{} }
-
+// HandleVerify remains a stub HTTP surface for later tasks (T-03 focuses on Service.Verify).
 func (s *Service) HandleVerify(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusNotImplemented)
 	_ = json.NewEncoder(w).Encode(map[string]string{
-		"error": "Play Integrity verification scaffolding — implement in later tasks",
+		"error": "HTTP integrity verify wiring deferred; use Service.Verify",
 	})
 }

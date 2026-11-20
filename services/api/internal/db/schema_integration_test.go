@@ -24,9 +24,15 @@ func TestSchemaMigrations_UpConstraintsDown(t *testing.T) {
 	}
 	defer pool.Close()
 
+	lock, err := migrate.AcquireTestLock(ctx, pool)
+	if err != nil {
+		t.Fatalf("schema lock: %v", err)
+	}
+	defer lock.Release(context.Background())
+
 	t.Logf("DATABASE_URL=%s", redactURL(db.DatabaseURL()))
 
-	if err := migrate.Reset(ctx, pool); err != nil {
+	if err := migrate.ResetLocked(ctx, pool, lock.Conn()); err != nil {
 		t.Fatalf("migrate reset/up: %v", err)
 	}
 
@@ -55,7 +61,7 @@ func TestSchemaMigrations_UpConstraintsDown(t *testing.T) {
 	assertNegativeAmountBlocked(t, ctx, pool)
 	assertAuditLogImmutable(t, ctx, pool)
 
-	if err := migrate.Down(ctx, pool); err != nil {
+	if err := migrate.DownLocked(ctx, lock.Conn()); err != nil {
 		t.Fatalf("migrate down: %v", err)
 	}
 	tablesAfter, err := migrate.ListPublicTables(ctx, pool)
@@ -72,7 +78,7 @@ func TestSchemaMigrations_UpConstraintsDown(t *testing.T) {
 	}
 
 	// Re-apply up so local compose DB stays usable after the suite.
-	if err := migrate.Up(ctx, pool); err != nil {
+	if err := migrate.UpLocked(ctx, pool, lock.Conn()); err != nil {
 		t.Fatalf("migrate up after down: %v", err)
 	}
 }

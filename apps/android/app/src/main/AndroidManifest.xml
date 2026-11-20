@@ -33,7 +33,7 @@
             </intent-filter>
         </activity>
 
-        <!-- Merged from :feature:capture — declared there; app enforces secure env flag -->
+        <!-- T-05 / CA-5: exige entorno seguro (ruta /data/user/0/, sin clonadores). -->
         <meta-data
             android:name="com.radarkm.REQUIRE_SECURE_ENV"
             android:value="true" />

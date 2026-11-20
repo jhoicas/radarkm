@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.22.1)
 project(radarkm_security)
 
+# Play Store 16 KB page-size compliance (NDK r28+ / ELF max-page-size).
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,max-page-size=16384")
+
 add_library(radarkm_security SHARED
     src/main/cpp/radarkm_security.cpp
 )
@@ -11,7 +14,6 @@ target_include_directories(radarkm_security PRIVATE
 
 find_library(log-lib log)
 
-# Enforce 16 KB ELF max page size for Play compliance.
 target_link_options(radarkm_security PRIVATE
     "-Wl,-z,max-page-size=16384"
 )

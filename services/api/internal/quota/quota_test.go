@@ -43,7 +43,12 @@ func setupQuotaHarness(t *testing.T) (*quota.Service, *db.DeviceRepository, *db.
 	}
 	t.Cleanup(pool.Close)
 
-	if err := migrate.Reset(ctx, pool); err != nil {
+	lock, err := migrate.AcquireTestLock(ctx, pool)
+	if err != nil {
+		t.Fatalf("schema lock: %v", err)
+	}
+	t.Cleanup(func() { lock.Release(context.Background()) })
+	if err := migrate.ResetLocked(ctx, pool, lock.Conn()); err != nil {
 		t.Fatalf("migrate reset: %v", err)
 	}
 
@@ -63,12 +68,12 @@ func setupQuotaHarness(t *testing.T) (*quota.Service, *db.DeviceRepository, *db.
 
 	clock := &fakeClock{now: bogotaTime(2026, 6, 15, 12, 0, 0)}
 	svc := quota.NewService(quota.Deps{
-		Redis:         rdb,
-		Devices:       devices,
-		Configs:       configs,
-		Plans:         plans,
-		Entitlements:  ents,
-		Clock:         clock,
+		Redis:          rdb,
+		Devices:        devices,
+		Configs:        configs,
+		Plans:          plans,
+		Entitlements:   ents,
+		Clock:          clock,
 		ConfigCacheTTL: 2 * time.Second,
 	})
 	return svc, devices, configs, plans, ents, rdb, clock
@@ -135,10 +140,10 @@ func TestConsume_exhaustsLimitThenBlocksWithActivePlans(t *testing.T) {
 
 	for i := 0; i < 2; i++ {
 		res, err := svc.Consume(ctx, quota.ConsumeRequest{
-			DeviceHash:      dev.WidevineHash,
-			Platform:        "uber",
-			FareCop:         20_000 + int64(i),
-			DistanceMeters:  5_000,
+			DeviceHash:     dev.WidevineHash,
+			Platform:       "uber",
+			FareCop:        20_000 + int64(i),
+			DistanceMeters: 5_000,
 		})
 		if err != nil {
 			t.Fatalf("consume %d: %v", i, err)

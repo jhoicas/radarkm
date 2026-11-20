@@ -4,21 +4,25 @@ Thumbs.db
 .idea/
 .vscode/
 *.iml
-.cursor/
+.cursor/*
+!.cursor/rules/
 
 # Env / secrets
 .env
-.env.local
-.env.*.local
+.env.*
 !.env.example
+*.jks
+*.keystore
+*.pem
+*.key
 
 # Android
 apps/android/.gradle/
 apps/android/**/build/
+apps/android/**/.cxx/
 apps/android/local.properties
 *.apk
 *.aab
-*.keystore
 captures/
 
 # Go

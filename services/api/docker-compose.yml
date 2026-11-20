@@ -7,6 +7,7 @@ services:
       RADARKM_API_ADDR: ":8080"
       RADARKM_DATABASE_URL: postgres://radarkm:radarkm@postgres:5432/radarkm?sslmode=disable
       RADARKM_REDIS_URL: redis://redis:6379/0
+      RADARKM_MIGRATIONS_DIR: /app/migrations
     depends_on:
       postgres:
         condition: service_healthy
@@ -28,7 +29,6 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./migrations/001_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U radarkm -d radarkm"]
       interval: 5s

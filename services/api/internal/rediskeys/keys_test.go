@@ -6,7 +6,6 @@ import (
 )
 
 func TestBogotaDay_crossesUTCMidnight(t *testing.T) {
-	// 2026-03-20 02:30 UTC → still 2026-03-19 in Bogotá (UTC-5)
 	instant := time.Date(2026, 3, 20, 2, 30, 0, 0, time.UTC)
 	if got := BogotaDay(instant); got != "2026-03-19" {
 		t.Fatalf("BogotaDay=%s want 2026-03-19", got)
@@ -28,5 +27,13 @@ func TestDedupAndConfigKeys(t *testing.T) {
 	}
 	if ConfigRuntimeKey != "config:runtime" {
 		t.Fatalf("ConfigRuntimeKey=%s", ConfigRuntimeKey)
+	}
+}
+
+func TestNextBogotaMidnight(t *testing.T) {
+	now := time.Date(2026, 6, 15, 23, 59, 59, 0, MustBogota())
+	next := NextBogotaMidnight(now)
+	if next.Year() != 2026 || next.Month() != 6 || next.Day() != 16 || next.Hour() != 0 {
+		t.Fatalf("next=%v", next)
 	}
 }

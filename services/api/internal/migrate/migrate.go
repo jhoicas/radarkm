@@ -54,62 +54,109 @@ func versionFromUpFile(path string) string {
 	return strings.TrimSuffix(base, ".up.sql")
 }
 
+const schemaAdvisoryLockKey int64 = 72420101
+
+func withSchemaLock(ctx context.Context, pool *pgxpool.Pool, fn func() error) error {
+	if _, err := pool.Exec(ctx, `SELECT pg_advisory_lock($1)`, schemaAdvisoryLockKey); err != nil {
+		return fmt.Errorf("advisory lock: %w", err)
+	}
+	defer func() {
+		_, _ = pool.Exec(context.Background(), `SELECT pg_advisory_unlock($1)`, schemaAdvisoryLockKey)
+	}()
+	return fn()
+}
+
 func Up(ctx context.Context, pool *pgxpool.Pool) error {
-	dir, err := Dir()
-	if err != nil {
-		return err
-	}
-	files, err := filepath.Glob(filepath.Join(dir, "*.up.sql"))
-	if err != nil {
-		return err
-	}
-	sort.Strings(files)
-	for _, f := range files {
-		version := versionFromUpFile(f)
-		applied, err := IsApplied(ctx, pool, version)
+	return withSchemaLock(ctx, pool, func() error {
+		dir, err := Dir()
 		if err != nil {
 			return err
 		}
-		if applied {
-			continue
-		}
-		sqlBytes, err := os.ReadFile(f)
+		files, err := filepath.Glob(filepath.Join(dir, "*.up.sql"))
 		if err != nil {
 			return err
 		}
-		if _, err := pool.Exec(ctx, string(sqlBytes)); err != nil {
-			return fmt.Errorf("migrate up %s: %w", filepath.Base(f), err)
+		sort.Strings(files)
+		for _, f := range files {
+			version := versionFromUpFile(f)
+			applied, err := IsApplied(ctx, pool, version)
+			if err != nil {
+				return err
+			}
+			if applied {
+				continue
+			}
+			sqlBytes, err := os.ReadFile(f)
+			if err != nil {
+				return err
+			}
+			if _, err := pool.Exec(ctx, string(sqlBytes)); err != nil {
+				return fmt.Errorf("migrate up %s: %w", filepath.Base(f), err)
+			}
 		}
-	}
-	return nil
+		return nil
+	})
 }
 
 func Down(ctx context.Context, pool *pgxpool.Pool) error {
-	dir, err := Dir()
-	if err != nil {
-		return err
-	}
-	files, err := filepath.Glob(filepath.Join(dir, "*.down.sql"))
-	if err != nil {
-		return err
-	}
-	sort.Sort(sort.Reverse(sort.StringSlice(files)))
-	for _, f := range files {
-		sqlBytes, err := os.ReadFile(f)
+	return withSchemaLock(ctx, pool, func() error {
+		dir, err := Dir()
 		if err != nil {
 			return err
 		}
-		if _, err := pool.Exec(ctx, string(sqlBytes)); err != nil {
-			return fmt.Errorf("migrate down %s: %w", filepath.Base(f), err)
+		files, err := filepath.Glob(filepath.Join(dir, "*.down.sql"))
+		if err != nil {
+			return err
 		}
-	}
-	return nil
+		sort.Sort(sort.Reverse(sort.StringSlice(files)))
+		for _, f := range files {
+			sqlBytes, err := os.ReadFile(f)
+			if err != nil {
+				return err
+			}
+			if _, err := pool.Exec(ctx, string(sqlBytes)); err != nil {
+				return fmt.Errorf("migrate down %s: %w", filepath.Base(f), err)
+			}
+		}
+		return nil
+	})
 }
 
 // Reset drops schema objects then applies up migrations.
 func Reset(ctx context.Context, pool *pgxpool.Pool) error {
-	_ = Down(ctx, pool)
-	return Up(ctx, pool)
+	return withSchemaLock(ctx, pool, func() error {
+		dir, err := Dir()
+		if err != nil {
+			return err
+		}
+		files, err := filepath.Glob(filepath.Join(dir, "*.down.sql"))
+		if err != nil {
+			return err
+		}
+		sort.Sort(sort.Reverse(sort.StringSlice(files)))
+		for _, f := range files {
+			sqlBytes, err := os.ReadFile(f)
+			if err != nil {
+				return err
+			}
+			_, _ = pool.Exec(ctx, string(sqlBytes))
+		}
+		upFiles, err := filepath.Glob(filepath.Join(dir, "*.up.sql"))
+		if err != nil {
+			return err
+		}
+		sort.Strings(upFiles)
+		for _, f := range upFiles {
+			sqlBytes, err := os.ReadFile(f)
+			if err != nil {
+				return err
+			}
+			if _, err := pool.Exec(ctx, string(sqlBytes)); err != nil {
+				return fmt.Errorf("migrate up %s: %w", filepath.Base(f), err)
+			}
+		}
+		return nil
+	})
 }
 
 func IsApplied(ctx context.Context, pool *pgxpool.Pool, version string) (bool, error) {
